@@ -31,8 +31,6 @@ python train_aux_task.py configs/train_slices.json
 python transfer_train_unet.py configs/train.json weights/aux_task/best.ckpt
 ```
 
-All train configuration JSONs can be found in configs/train and modified as needed. Configuration JSON files are available for training a separate airlight model, a separate transmission map model, a DualFastNet model, a FastNet model, or a FastNet50 model. Each configuration JSON file is available for both the 2019 NTIRE Image Dehazing dataset or the He, Zhang dataset. Validation can also be done during training by setting the "validate" flag to "1" in the JSON configuration file and providing a path to the validation JSON configuration file in the "validation\_config" field, as shown below:
-
 All training parameters can be set in the JSON config and/or top of the py file. For example, you should always indicate the location of your training files (we natively support training with data stored in .h5 datasets) in the config:
 
 ```bash
