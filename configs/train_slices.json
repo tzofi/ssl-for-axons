@@ -1,0 +1,18 @@
+{
+	"path": "./data/janelia",
+	"dataset_name_raw": "data",
+	"dataset_name_truth": "truth",
+	"output_dataset_name": "",
+
+	"training_crop_size": 128,
+	"testing_crop_size": 128,
+	"z": 8,
+	"number_permutations": 10,
+	"repeat_samples": 1, 
+
+	"save_predictions": 1,
+	"report_metrics": 0,
+	"report_thresh": 0.5,
+	"save_images": 0,
+	"print_log": 1
+}
