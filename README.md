@@ -51,4 +51,4 @@ python test_aux_task.py configs/test_slices.json {path_to_weights_file}
 ``` 
 
 #### References
-Our implementation draws heavily upon [this 3D U-Net code](https://github.com/wolny/pytorch-3dunet) by Wolny et al. If using this code, please also cite his work.
+Our implementation draws heavily upon [this 3D U-Net code](https://github.com/wolny/pytorch-3dunet) by Wolny et al. If using this code, please also cite their work.
