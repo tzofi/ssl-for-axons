@@ -16,7 +16,7 @@ conda install --yes --file requirements.txt
 For part of our work, we used the [Janelia dataset from the BigNeuron Project](https://github.com/BigNeuron/Data/releases/tag/Gold166_v1).
 
 #### Training Our Models
-We propose first training the 3D U-Net and auxiliary classifier on an auxiliary task. The auxiliary task consists of reordering the slices of each training subvolume and then training the CNN to predict the permutation used to reorder the slices. For example, if there 10 permutations have been generated, then the auxiliary classifier should predict a one-hot encoding of length 10, where argmax of the encoding is the index to the permutation used. Code for sampling permutations is in utils/permutations.py. After training the auxiliary task, the 3D U-Net pre-trained encoder and randomly initialized decoder can be fine tuned on the target segmentation task.
+We propose first training the 3D U-Net encoder along with an auxiliary classifier on an auxiliary task. The auxiliary task consists of predicting the permutation used to reorder the slices of an input subvolume. For example, if there 10 permutations have been generated, then the auxiliary classifier should predict a one-hot encoding of length 10, where argmax of the encoding is the index to the permutation used. Code for sampling permutations is in utils/permutations.py. After training the auxiliary task, the 3D U-Net pre-trained encoder and randomly initialized decoder can be fine tuned on the target segmentation task.
 
 ##### To Train
 
