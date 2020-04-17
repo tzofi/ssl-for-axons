@@ -33,7 +33,7 @@ python train_aux_task.py configs/train_slices.json
 python transfer_train_unet.py configs/train.json weights/aux_task/best.ckpt
 ```
 
-H5 files in ./data/train will be used for training and H5 files in ./data/val will be used for validation. All training parameters can be set in the JSON config and/or top of the py file. For example, you should always indicate the location of your training files (we natively support training with data stored in .h5 datasets) in the config:
+We natively support training with data stored in H5 datasets. H5 files in ./data/train are used for training and H5 files in ./data/val are used for validation. All training parameters can be set in the JSON config and/or top of the py file. For example, you should always indicate the location of your data directory and dataset names in the config:
 
 ```bash
 "path": "./data/janelia,
