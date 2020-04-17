@@ -1,4 +1,4 @@
-''' 3D U-Net implementation originally written by Wolny et al '''
+''' 3D U-Net implementation was originally written by Wolny et al '''
 
 import importlib
 
@@ -83,16 +83,13 @@ class UNet3D(nn.Module):
             or BCEWithLogitsLoss (two-class) respectively)
         f_maps (int, tuple): number of feature maps at each level of the encoder; if it's an integer the number
             of feature maps is given by the geometric progression: f_maps ^ k, k=1,2,3,4
-        final_sigmoid (bool): if True apply element-wise nn.Sigmoid after the
-            final 1x1 convolution, otherwise apply nn.Softmax. MUST be True if nn.BCELoss (two-class) is used
-            to train the model. MUST be False if nn.CrossEntropyLoss (multi-class) is used to train the model.
         layer_order (string): determines the order of layers
             in `SingleConv` module. e.g. 'crg' stands for Conv3d+ReLU+GroupNorm3d.
             See `SingleConv` for more info
         init_channel_number (int): number of feature maps in the first conv layer of the encoder; default: 64
         num_groups (int): number of groups for the GroupNorm
     """
-    def __init__(self, in_channels, out_channels, final_sigmoid, f_maps=64, layer_order='crg', num_groups=8,
+    def __init__(self, in_channels, out_channels, f_maps=64, layer_order='crg', num_groups=8,
                  **kwargs):
         super(UNet3D, self).__init__()
 
@@ -129,11 +126,6 @@ class UNet3D(nn.Module):
         # in the last layer a 1×1 convolution reduces the number of output
         # channels to the number of labels
         self.final_conv = nn.Conv3d(f_maps[0], out_channels, 1)
-
-        if final_sigmoid:
-            self.final_activation = nn.Sigmoid()
-        else:
-            self.final_activation = nn.Softmax(dim=1)
         self.final_activation = nn.Sigmoid()
 
     def forward(self, x):

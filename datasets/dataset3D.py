@@ -7,7 +7,6 @@ import random
 import math
 
 from PIL import Image, ImageEnhance
-#from scipy.misc import imresize
 from scipy.ndimage import rotate
 from skimage.morphology import skeletonize
 
@@ -42,7 +41,6 @@ class AxonDataset(data.Dataset):
         for fname in os.listdir(self.dir):
             if fname[-3:] == ".h5":
                 size = h5py.File(self.dir + "/" + fname)['data'].shape
-                #size = np.transpose(np.array(h5py.File(self.dir + "/" + fname)['data'])).shape
                 if self.test:
                     samples = math.ceil(size[0]/self.z) * math.ceil(size[1]/self.test_size) * math.ceil(size[2]/self.test_size)
                     slices = math.ceil(size[1]/self.test_size) * math.ceil(size[2]/self.test_size)
@@ -76,24 +74,24 @@ class AxonDataset(data.Dataset):
         if self.fname != fname:
             self.fname = fname
             self.fname_idx = 0
-            self.data = np.array(h5py.File(self.dir + "/" + fname, 'r')[self.opt['dataset_name_raw']], dtype=np.float32)
-            #self.data = np.transpose(self.data)
-            try:
-                self.truth = np.array(h5py.File(self.dir + "/" + fname, 'r')[self.opt['dataset_name_truth']], dtype=np.float32)
-                #self.truth = np.transpose(self.truth)
-            except:
-                ''' No labeled truth '''
-                pass
+            with h5py.File(self.dir + "/" + fname, 'r') as f:
+                self.data = np.array(f[self.opt['dataset_name_raw']], dtype=np.float32)
+                try:
+                    self.truth = np.array(f[self.opt['dataset_name_truth']], dtype=np.float32)
+                except:
+                    ''' No labeled truth '''
+                    pass
         elif self.val and self.fname_idx == len(self):
             self.fname_idx = 0
 
         overlap = [0,0,0]
             
 
+        ''' Validation and Test logic iterate over each subvolume without overlap '''
         if self.val:
             ''' Convert data in NumPy arrays  '''
-            image = self.data #np.array(self.data, dtype=np.float32)
-            mask = self.truth #np.array(self.truth, dtype=np.float32)
+            image = self.data
+            mask = self.truth
             mask[mask == 255] = 1
 
             ''' Calculate indices into volume for sample  '''
@@ -156,33 +154,36 @@ class AxonDataset(data.Dataset):
 
             ''' Obtain test mask when provided in H5  '''
             try:
-                mask = self.truth #np.array(self.truth, dtype=np.float32)
+                mask = self.truth
                 mask = mask[zstart:zend, xstart:xend, ystart:yend]
                 mask[mask == 255] = 1
             except:
                 mask = 0
 
         else:
-            # Old method - iterate over z
-            #idx = int(idx/self.num_samples_per_train_slice)
-            # New method - randomly slice in z
+            ''' Randomly select z slices to sample '''
             idx = int(np.random.randint(0,high=(len(self.data)-self.z)))
 
             ''' Convert data in NumPy arrays '''
-            image = self.data[idx:idx + self.z,:,:] #np.array(self.data[idx:idx + self.z,:,:], dtype=np.float32)
-            mask = self.truth[idx:idx + self.z,:,:] #np.array(self.truth[idx:idx + self.z,:,:], dtype=np.float32)
+            image = self.data[idx:idx + self.z,:,:]
+            mask = self.truth[idx:idx + self.z,:,:]
             mask[mask == 255] = 1
 
-            ''' Randomly crop subvolume '''
-            inp = np.stack([image, mask])
-            out_max = 0
-            while out_max == 0:
-                out = self.crop(inp)
-                out_max = np.max(out[0])
-            out = self.transform_data(out)
+            if np.max(image) == 0:
+                ''' Because crop routine requires non-zero data, check if data is non-zero first '''
+                image = image[:,0:self.crop_size, 0:self.crop_size]
+                mask = mask[:,0:self.crop_size, 0:self.crop_size]
+            else:
+                ''' Randomly crop subvolume '''
+                inp = np.stack([image, mask])
+                out_max = 0
+                while out_max == 0:
+                    out = self.crop(inp)
+                    out_max = np.max(out[0])
+                out = self.transform_data(out)
 
-            image = out[0]
-            mask = out[1]
+                image = out[0]
+                mask = out[1]
 
         if self.logging:
             self.log_image(image[0], "raw", idx)
@@ -193,7 +194,6 @@ class AxonDataset(data.Dataset):
             image = np.array((image - np.min(image))/(np.max(image) - np.min(image)), dtype=np.float32)
 
         ''' Pad if dimensions are too small '''
-        #if not self.test:
         z = self.z - image.shape[0]
         x = self.crop_size - image.shape[1]
         y = self.crop_size - image.shape[2]
@@ -220,7 +220,6 @@ class AxonDataset(data.Dataset):
                 z1 = int(z/2)
                 z2 = math.ceil(z/2)
             image = np.pad(image, ((z1,z2),(x1,x2),(y1,y2)))
-            #if not self.test:
             mask = np.pad(mask, ((z1,z2),(x1,x2),(y1,y2)))
 
         ''' Increment the index into the current volume  '''
@@ -232,7 +231,7 @@ class AxonDataset(data.Dataset):
     def stitch(self, fname, blocks):
         single = []
         stitched = np.array([])
-        samples = self.volume_dict[fname] #self.num_samples_per_slice
+        samples = self.volume_dict[fname]
         length = math.ceil(self.data.shape[1] / self.test_size)
         for i, block in enumerate(blocks):
             print("Block: " + str(block.shape))
@@ -294,13 +293,23 @@ class AxonDataset(data.Dataset):
                 enhancer = ImageEnhance.Color(Image.fromarray(images[i]))
                 images[i] = np.array(enhancer.enhance(enhance_factor))
                 i += 1
+
         if "rotation" in self.transforms.keys() and rand[1] < self.transforms['rotation']:
-            ''' Rotation (with reflective padding) '''
+            ''' Rotation (with constant padding) '''
             angle = random.randrange(0,360)
+            ax = random.randrange(0,3)
+            axes = 0
+            if ax == 0:
+                axes = (1,0)
+            elif ax == 1:
+                axes = (2,0)
+            elif ax == 2:
+                axes = (2,1)
             i = 0
             while i < len(images):
-                images[i] = rotate(images[i], angle, reshape=False, mode='reflect')
+                images[i] = rotate(images[i], angle, axes=axes, reshape=False, mode='constant')
                 i += 1
+
         if "crop" in self.transforms.keys() and rand[2] < self.transforms['crop']:
             '''crop and resize'''
             i = 0
@@ -313,6 +322,7 @@ class AxonDataset(data.Dataset):
                 image = images[i][x_crop[0]:x_crop[1],y_crop[0]:y_crop[1]]
                 images[i] = (imresize(image, size, interp='lanczos')/255)
                 i += 1
+
         return images
 
 

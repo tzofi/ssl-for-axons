@@ -68,7 +68,7 @@ for REP in range(REPS):
         os.makedirs(opt['weights_path'] + "/" + str(REP))
 
 
-    model = UNet3D(1, 1, final_sigmoid=False)
+    model = UNet3D(1, 1)
     model = model.to(device)
     model = nn.DataParallel(model)
     pretrained_encoder = torch.load(sys.argv[2])

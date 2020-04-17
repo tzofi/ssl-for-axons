@@ -26,7 +26,7 @@ opt_file.close()
 device = torch.device('cuda')
 
 # Load model
-model = UNet3D(1, 1, final_sigmoid=True).to(device)
+model = UNet3D(1, 1).to(device)
 model = nn.DataParallel(model)
 model.load_state_dict(torch.load(sys.argv[2], map_location=lambda storage, loc: storage))
 

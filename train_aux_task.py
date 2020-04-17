@@ -44,7 +44,6 @@ device = torch.device('cuda')
 num_epochs = opt['num_epochs']
 learning_rate = opt['learning_rate']
 
-#model = UNet3D(1, 1, final_sigmoid=False)
 model = SlicePredictor(1, len(opt['permutations']))
 model = model.to(device)
 model = nn.DataParallel(model)
