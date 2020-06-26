@@ -10,7 +10,7 @@ The code has been developed and tested with PyTorch 1.2.0 in a Conda environment
 conda activate {Project Environment}
 git clone ${repository}
 cd ssl-for-axons
-conda install --yes --file requirements.txt
+conda install --yes --file requirements.yml
 ```
 
 #### Data
