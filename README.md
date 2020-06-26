@@ -58,7 +58,7 @@ Our 2020 CVPR CVMI paper:
 
 ```bash
 @inproceedings{klinghoffer2020ssl,
-  title={Self-Supervised Learning for 3D Axon Segmentation},
+  title={Self-Supervised Feature Extraction for 3D Axon Segmentation},
   author={Klinghoffer, Tzofi and Morales, Peter and Park, Young-Gyun and Evans, Nicholas and Chung, Kwanghun and Brattain, Laura},
   booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition Workshops},
   year={2020}
